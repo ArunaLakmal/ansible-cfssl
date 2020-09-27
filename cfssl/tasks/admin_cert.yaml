@@ -3,5 +3,5 @@
     dest: "{{ role_path }}/files/admin-csr.json"
     content: "{{ admin_csr | to_json }}"
 
-- name: generate certificate authority
-  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes {{ role_path }}/files/admin-csr.json | cfssljson -bare admin
+- name: generate admin cert
+  shell: cfssl gencert -ca={{ role_path }}/ca.pem -ca-key={{ role_path }}/ca-key.pem -config={{ role_path }}/files/ca-config.json -profile=kubernetes {{ role_path }}/files/admin-csr.json | cfssljson -bare admin
