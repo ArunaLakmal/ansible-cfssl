@@ -1,0 +1,12 @@
+- name: generate ca-config
+  copy:
+    dest: "{{ role_path }}/files/ca-config.json"
+    content: "{{ ca_config | to_json }}"
+
+- name: generate ca-csr
+  copy:
+    dest: "{{ role_path }}/files/ca-csr.json"
+    content: "{{ ca_csr | to_json }}"
+
+- name: generate certificate authority
+  shell:  cfssl gencert -initca {{ role_path }}/files/ca-csr.json | cfssljson -bare ca

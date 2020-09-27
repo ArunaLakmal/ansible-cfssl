@@ -1,0 +1,3 @@
+---
+# tasks file for cfssl
+- import_tasks: ca_cert.yaml
