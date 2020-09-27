@@ -1,3 +1,4 @@
 ---
 # tasks file for cfssl
 - import_tasks: ca_cert.yaml
+- import_tasks: admin_cert.yaml

@@ -24,3 +24,15 @@ ca_csr:
     O: Kubernetes
     OU: CA
     ST: Oregon
+
+admin_csr:
+  CN: admin
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: system:masters
+    OU: Kubernetes The Hard Way
+    ST: Oregon
