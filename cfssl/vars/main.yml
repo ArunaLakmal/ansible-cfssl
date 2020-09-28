@@ -36,3 +36,51 @@ admin_csr:
     O: system:masters
     OU: Kubernetes The Hard Way
     ST: Oregon
+
+kube_controller_manager:
+  CN: system:kube-controller-manager
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: system:kube-controller-manager
+    OU: Kubernetes The Hard Way
+    ST: Oregon
+
+kube_proxy:
+  CN: system:kube-proxy
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: system:node-proxier
+    OU: Kubernetes The Hard Way
+    ST: Oregon
+
+kube_scheduler:
+  CN: system:kube-scheduler
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: system:kube-scheduler
+    OU: Kubernetes The Hard Way
+    ST: Oregon
+
+service_account:
+  CN: service-accounts
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: Kubernetes
+    OU: Kubernetes The Hard Way
+    ST: Oregon

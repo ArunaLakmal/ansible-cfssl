@@ -1,0 +1,7 @@
+- name: generate kube  scheduler csr
+  copy:
+    dest: "{{ role_path }}/files/kube-scheduler-csr.json"
+    content: "{{ kube_scheduler | to_json }}"
+
+- name: generate kube scheduler certificate
+  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config={{ role_path }}/files/ca-config.json -profile=kubernetes {{ role_path }}/files/kube-scheduler-csr.json | cfssljson -bare kube-scheduler

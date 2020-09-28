@@ -2,3 +2,7 @@
 # tasks file for cfssl
 - import_tasks: ca_cert.yaml
 - import_tasks: admin_cert.yaml
+- import_tasks: kube_controller_cert.yaml
+- import_tasks: kube_proxy_cert.yaml
+- import_tasks: kube_scheduler_cert.yaml
+- import_tasks: service_account_kp.yaml
