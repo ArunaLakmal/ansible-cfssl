@@ -4,4 +4,4 @@
     content: "{{ kube_controller_manager | to_json }}"
 
 - name: generate kube controller manager certificate
-  shell: cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config={{ role_path }}/files/ca-config.json -profile=kubernetes {{ role_path }}/files/kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
+  shell: cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -profile=kubernetes {{ role_path }}/files/kube-controller-manager-csr.json | cfssljson -bare {{ role_path }}/files/kube-controller-manager
