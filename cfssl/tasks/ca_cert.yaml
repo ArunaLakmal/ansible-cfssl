@@ -9,4 +9,4 @@
     content: "{{ ca_csr | to_json }}"
 
 - name: generate certificate authority
-  shell:  cfssl gencert -initca {{ role_path }}/files/ca-csr.json | cfssljson -bare ca
+  shell:  cfssl gencert -initca {{ role_path }}/files/ca-csr.json | cfssljson -bare {{ role_path }}/files/ca
