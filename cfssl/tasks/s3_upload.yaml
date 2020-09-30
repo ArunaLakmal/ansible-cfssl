@@ -1,4 +1,5 @@
 - name: certs upload to s3
   community.aws.s3_sync:
-    bucket: {{ bucket }}
-    file_root: {{ role_path }}/files/
+    bucket: "{{ bucket }}"
+    key_prefix: ca/
+    file_root: "{{ role_path }}/files/"
