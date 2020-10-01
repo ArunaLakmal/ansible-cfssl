@@ -14,3 +14,6 @@ certs:
 
 workercerts: 
 	@ansible-playbook cfssl-worker.yaml --extra-vars "@cfssl.tfvars.json"
+
+mastercerts: 
+	@ansible-playbook cfssl-master.yaml --extra-vars "@cfssl.tfvars.json"
