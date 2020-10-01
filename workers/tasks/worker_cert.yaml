@@ -46,4 +46,4 @@
     content: "{{ kube_worker | to_json }}"
 
 - name: generate certificate for worker nodes
-  shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ worker_host }},{{  worker_ip }} -profile=kubernetes {{ role_path }}/files/{{ worker_host }}-csr.json | cfssljson -bare {{ role_path }}/files/{{ worker_host}}"
+  shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ worker_host }},{{  worker_ip }},{{ worker_lb }} -profile=kubernetes {{ role_path }}/files/{{ worker_host }}-csr.json | cfssljson -bare {{ role_path }}/files/{{ worker_host}}"
