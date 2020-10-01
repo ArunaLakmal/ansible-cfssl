@@ -1,0 +1,3 @@
+---
+# tasks file for workers
+- import_tasks: worker_cert.yaml

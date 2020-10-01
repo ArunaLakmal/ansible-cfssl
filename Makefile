@@ -11,3 +11,6 @@ cfssl:
 
 certs: 
 	@ansible-playbook cfssl-generate.yaml --extra-vars "@cfssl.tfvars.json"
+
+workercerts: 
+	@ansible-playbook cfssl-worker.yaml --extra-vars "@cfssl.tfvars.json"
