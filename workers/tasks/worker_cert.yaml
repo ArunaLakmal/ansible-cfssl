@@ -1,0 +1,40 @@
+- name: download ca
+  amazon.aws.aws_s3:
+    bucket: {{ bucket }}
+    object: /ca/ca.pem
+    dest: {{ role_path }}/files/ca.pem
+    mode: get
+
+- name: download ca-key.pem
+  amazon.aws.aws_s3:
+    bucket: {{ bucket }}
+    object: /ca/ca-key.pem
+    dest: {{ role_path }}/files/ca-key.pem
+    mode: get
+
+- name: download ca-config
+  amazon.aws.aws_s3:
+    bucket: {{ bucket }}
+    object: /ca/ca-config.json
+    dest: {{ role_path }}/files/ca-config.json
+    mode: get
+
+- name: kube worker hostname
+  shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+  register: worker_host
+
+- name: kube worker ip address
+  shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
+  register: worker_ip
+
+- name: kube worker loadbalancer
+  shell: aws elbv2 describe-load-balancers --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: worker_lb
+
+- name: generate kube worker csr
+  copy:
+    dest: "{{ role_path }}/files/{{worker_host}}-csr.json"
+    content: "{{ kube_worker | to_json }}"
+
+- name: generate certificate for worker nodes
+  shell: cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ worker_host }},{{  worker_ip }} -profile=kubernetes {{ worker_host }}-csr.json | cfssljson -bare {{ role_path }}/files/{{ worker_host}}
