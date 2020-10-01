@@ -20,16 +20,25 @@
     mode: get
 
 - name: kube worker hostname
-  shell: $(curl http://169.254.169.254/latest/meta-data/local-hostname)
+  shell: curl http://169.254.169.254/latest/meta-data/local-hostname
   register: worker_host
 
+- set_fact: 
+    worker_host={{ worker_host.stdout }}
+
 - name: kube worker ip address
-  shell: $(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+  shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
   register: worker_ip
 
+- set_fact: 
+    worker_ip={{ worker_ip.stdout }}
+
 - name: kube worker loadbalancer
-  shell: $(aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName')
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: worker_lb
+
+- set_fact: 
+    worker_lb={{ worker_lb.stdout }}
 
 - name: generate kube worker csr
   copy:
