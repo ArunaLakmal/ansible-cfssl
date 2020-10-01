@@ -1,0 +1,19 @@
+---
+# vars file for masters
+kube_master:
+  CN: kubernetes
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: Kubernetes
+    OU: Kubernetes The Hard Way
+    ST: Oregon
+
+CERT_HOSTNAME: 
+  - 10.32.0.1
+  - 127.0.0.1
+  - localhost
+  - kubernetes.default
