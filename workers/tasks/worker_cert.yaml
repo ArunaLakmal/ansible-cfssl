@@ -34,7 +34,7 @@
     worker_ip={{ worker_ip.stdout }}
 
 - name: kube worker loadbalancer
-  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeworker-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: worker_lb
 
 - set_fact: 

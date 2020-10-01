@@ -1,0 +1,3 @@
+---
+# tasks file for masters
+- import_tasks: master_cert.yaml

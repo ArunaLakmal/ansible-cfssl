@@ -1,0 +1,49 @@
+- name: download ca
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/ca.pem
+    dest: "{{ role_path }}/files/ca.pem"
+    mode: get
+
+- name: download ca-key.pem
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/ca-key.pem
+    dest: "{{ role_path }}/files/ca-key.pem"
+    mode: get
+
+- name: download ca-config
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/ca-config.json
+    dest: "{{ role_path }}/files/ca-config.json"
+    mode: get
+
+- name: kube master hostname
+  shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+  register: master_host
+
+- set_fact: 
+    master_host={{ master_host.stdout }}
+
+- name: kube master ip address
+  shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
+  register: master_ip
+
+- set_fact: 
+    master_ip={{ master_ip.stdout }}
+
+- name: kube master loadbalancer
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: master_lb
+
+- set_fact: 
+    master_lb={{ master_lb.stdout }}
+
+- name: generate kube master csr
+  copy:
+    dest: "{{ role_path }}/files/kubernetes-csr.json"
+    content: "{{ kube_master | to_json }}"
+
+- name: generate certificate for master nodes
+  shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ CERT_HOSTNAME[0] }},{{ CERT_HOSTNAME[1] }},{{ CERT_HOSTNAME[2] }},{{ CERT_HOSTNAME[3] }},{{ master_host }},{{ master_ip }},{{ master_lb }} -profile=kubernetes {{ role_path }}/files/kubernetes-csr.json | cfssljson -bare {{ role_path }}/files/kubernetes"
