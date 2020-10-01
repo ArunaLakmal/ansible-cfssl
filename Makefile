@@ -10,4 +10,4 @@ cfssl:
 	@./scripts/cfssl-install.sh
 
 certs: 
-	@ansible-playbook cfssl-generate.yaml --extra-vars "@cfssl_vars.tf.json"
+	@ansible-playbook cfssl-generate.yaml --extra-vars "@cfssl.tfvars.json"
