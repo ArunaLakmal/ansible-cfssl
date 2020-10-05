@@ -84,3 +84,16 @@ service_account:
     O: Kubernetes
     OU: Kubernetes The Hard Way
     ST: Oregon
+
+encryption-config:
+  kind: EncryptionConfig
+  apiVersion: v1
+  resources:
+    - resources:
+        - secrets
+      providers:
+        - aescbc:
+            keys:
+              - name: key1
+                secret: {{ encryption_key }}
+        - identity: {}
