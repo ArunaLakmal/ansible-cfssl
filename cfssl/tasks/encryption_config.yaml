@@ -1,11 +1,4 @@
-- name: generate encryption  key
-  shell: head -c 32 /dev/urandom | base64
-  register: encryption_key
-
-- set_fact:  
-    encryption_key={{ encryption_key.stdout }}
-
-- name: generate ca-config
+- name: generate encryption configuration
   copy:
-    dest: "{{ role_path }}/files/ca-config.json"
+    dest: "{{ role_path }}/files/encryption-config.yaml"
     content: "{{ encryption_config | to_nice_yaml }}"

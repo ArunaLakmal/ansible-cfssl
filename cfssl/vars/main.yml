@@ -95,5 +95,5 @@ encryption_config:
         - aescbc:
             keys:
               - name: key1
-                secret: {{ encryption_key }}
+                secret: 53HqLjG/hIdh/3W9vnbLJ7uAgVcAYnsZnBoqhfYBeg4=
         - identity: {}
