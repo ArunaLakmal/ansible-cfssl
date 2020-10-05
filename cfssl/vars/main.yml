@@ -85,7 +85,7 @@ service_account:
     OU: Kubernetes The Hard Way
     ST: Oregon
 
-encryption-config:
+encryption_config:
   kind: EncryptionConfig
   apiVersion: v1
   resources:

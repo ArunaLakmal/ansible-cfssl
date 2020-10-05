@@ -8,4 +8,4 @@
 - name: generate ca-config
   copy:
     dest: "{{ role_path }}/files/ca-config.json"
-    content: "{{ ca_config | to_nice_yaml}}"
+    content: "{{ encryption_config | to_nice_yaml }}"
