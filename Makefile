@@ -19,4 +19,4 @@ mastercerts:
 	@ansible-playbook cfssl-master.yaml --extra-vars "@cfssl.tfvars.json"
 
 etcdcerts: 
-	@ansible-playbook cfssl-etdc.yaml --extra-vars "@cfssl.tfvars.json"
+	@ansible-playbook cfssl-etcd.yaml --extra-vars "@cfssl.tfvars.json"
