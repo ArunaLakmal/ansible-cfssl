@@ -31,25 +31,25 @@
     ETCD_NAME: "{{ etcd_name.stdout }}"
     INTERNAL_IP: "{{ internal_ip.stdout }}"
 
-- name: setting up etcd service
-  copy:
-    src: "{{ role_path }}/files/etcd.service"
-    dest: /etc/systemd/system/
-    owner: root
-    group: root
-    mode: '0755'
+# - name: setting up etcd service
+#   copy:
+#     src: "{{ role_path }}/files/etcd.service"
+#     dest: /etc/systemd/system/
+#     owner: root
+#     group: root
+#     mode: '0755'
 
-- name: systemd reload
-  systemd:
-    daemon_reload: yes
+# - name: systemd reload
+#   systemd:
+#     daemon_reload: yes
 
-- name: enable etcd service and ensure it is not masked
-  systemd:
-    name: etcd
-    enabled: yes
-    masked: no
+# - name: enable etcd service and ensure it is not masked
+#   systemd:
+#     name: etcd
+#     enabled: yes
+#     masked: no
 
-- name: make sure etcd service is running
-  systemd:
-    state: started
-    name: etcd
+# - name: make sure etcd service is running
+#   systemd:
+#     state: started
+#     name: etcd
