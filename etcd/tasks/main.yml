@@ -1,2 +1,3 @@
 ---
 # tasks file for etcd
+- import_tasks: etcd-certs.yaml
