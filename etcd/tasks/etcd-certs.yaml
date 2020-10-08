@@ -32,7 +32,7 @@
     INTERNAL_IP: "{{ internal_ip.stdout }}"
 
 - name: setting up etcd service
-  copy:
+  template:
     src: "{{ role_path }}/templates/etcd.service.j2"
     dest: /etc/systemd/system/etcd.service
     owner: root
