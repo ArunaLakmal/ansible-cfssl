@@ -1,0 +1,55 @@
+- name: download ca
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/ca.pem
+    dest: "/etc/etcd/ca.pem"
+    mode: get
+
+- name: download kubernetes-key.pem
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/kubernetes-key.pem
+    dest: "/etc/etcd/kubernetes-key.pem"
+    mode: get
+
+- name: download kubernetes
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/kubernetes.pem
+    dest: "/etc/etcd/kubernetes.pem"
+    mode: get
+
+- name: etcd name
+  shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+  register: etcd_name
+
+- name: internal ip
+  shell: curl curl http://169.254.169.254/latest/meta-data/local-ipv4
+  register: internal_ip
+
+- set_fact:
+    ETCD_NAME: "{{ etcd_name.stdout }}"
+    INTERNAL_IP: "{{ internal_ip.stdout }}"
+
+- name: setting up etcd service
+  template:
+    src: "{{ role_path }}/templates/etcd.service.j2"
+    dest: /etc/systemd/system/etcd.service
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: systemd reload
+  systemd:
+    daemon_reload: yes
+
+- name: enable etcd service and ensure it is not masked
+  systemd:
+    name: etcd
+    enabled: yes
+    masked: no
+
+- name: make sure etcd service is running
+  systemd:
+    state: started
+    name: etcd

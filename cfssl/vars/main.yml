@@ -84,3 +84,35 @@ service_account:
     O: Kubernetes
     OU: Kubernetes The Hard Way
     ST: Oregon
+
+encryption_config:
+  kind: EncryptionConfig
+  apiVersion: v1
+  resources:
+    - resources:
+        - secrets
+      providers:
+        - aescbc:
+            keys:
+              - name: key1
+                secret: 53HqLjG/hIdh/3W9vnbLJ7uAgVcAYnsZnBoqhfYBeg4=
+        - identity: {}
+
+# vars file for masters
+kube_master:
+  CN: kubernetes
+  key:
+    algo: rsa
+    size: 2048
+  names:
+  - C: US
+    L: Portland
+    O: Kubernetes
+    OU: Kubernetes The Hard Way
+    ST: Oregon
+
+CERT_HOSTNAME: 
+  - 10.32.0.1
+  - 127.0.0.1
+  - localhost
+  - kubernetes.default

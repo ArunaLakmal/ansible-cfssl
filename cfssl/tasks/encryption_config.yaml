@@ -1,0 +1,4 @@
+- name: generate encryption configuration
+  copy:
+    dest: "{{ role_path }}/files/encryption-config.yaml"
+    content: "{{ encryption_config | to_nice_yaml }}"

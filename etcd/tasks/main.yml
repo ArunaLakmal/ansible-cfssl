@@ -1,0 +1,4 @@
+---
+# tasks file for etcd
+- import_tasks: collect_info.yaml
+- import_tasks: etcd-certs.yaml

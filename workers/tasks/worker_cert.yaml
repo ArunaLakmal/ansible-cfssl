@@ -40,6 +40,13 @@
 - set_fact: 
     worker_lb={{ worker_lb.stdout }}
 
+- name: kube master loadbalancer
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: master_lb
+
+- set_fact: 
+    master_lb={{ master_lb.stdout }}
+
 - name: generate kube worker csr
   copy:
     dest: "{{ role_path }}/files/{{worker_host}}-csr.json"
@@ -47,3 +54,17 @@
 
 - name: generate certificate for worker nodes
   shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ worker_host }},{{  worker_ip }},{{ worker_lb }} -profile=kubernetes {{ role_path }}/files/{{ worker_host }}-csr.json | cfssljson -bare {{ role_path }}/files/{{ worker_host}}"
+
+- name: generate kube config for the workers
+  shell: |
+    kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://{{ master_lb }}:6443 --kubeconfig={{ role_path }}/files/{{ worker_host}}.kubeconfig
+    kubectl config set-credentials system:node:{{ worker_host }} --client-certificate={{ role_path }}/files/{{ worker_host}}.pem --client-key={{ role_path }}/files/{{ worker_host}}-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/{{ worker_host}}.kubeconfig
+    kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:node:{{ worker_host }} --kubeconfig={{ role_path }}/files/{{ worker_host}}.kubeconfig
+    kubectl config use-context default --kubeconfig={{ role_path }}/files/{{ worker_host}}.kubeconfig
+
+- name: generate kube proxy config 
+  shell: | 
+    kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://{{ master_lb }}:6443 --kubeconfig={{ role_path }}/files/kube-proxy.kubeconfig
+    kubectl config set-credentials system:kube-proxy --client-certificate={{ role_path }}/files/kube-proxy.pem --client-key={{ role_path }}/files/kube-proxy-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/kube-proxy.kubeconfig
+    kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:kube-proxy --kubeconfig={{ role_path }}/files/kube-proxy.kubeconfig
+    kubectl config use-context default --kubeconfig={{ role_path }}/files/kube-proxy.kubeconfig
