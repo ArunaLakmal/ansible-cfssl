@@ -1,4 +1,11 @@
-- name: generate encryption configuration
-  copy:
+- name: generate encryption key
+  shell: head -c 32 /dev/urandom | base64
+  register: key
+
+- set_fact: 
+    encryption_key: "{{ key.stdout }}"
+
+- name: setting up encryption yaml
+  template:
+    src: "{{ role_path }}/templates/encryption-config.yaml.j2"
     dest: "{{ role_path }}/files/encryption-config.yaml"
-    content: "{{ encryption_config | to_nice_yaml }}"
