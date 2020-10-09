@@ -1,3 +1,4 @@
 ---
 # tasks file for masters
+- import_tasks: collect_info.yaml
 - import_tasks: master_cert.yaml

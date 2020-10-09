@@ -2,68 +2,179 @@
   amazon.aws.aws_s3:
     bucket: "{{ bucket }}"
     object: /ca/ca.pem
-    dest: "{{ role_path }}/files/ca.pem"
+    dest: "/var/lib/kubernetes/ca.pem"
     mode: get
 
 - name: download ca-key.pem
   amazon.aws.aws_s3:
     bucket: "{{ bucket }}"
     object: /ca/ca-key.pem
-    dest: "{{ role_path }}/files/ca-key.pem"
+    dest: "/var/lib/kubernetes/ca-key.pem"
     mode: get
 
-- name: download ca-config
+- name: download kubernetes-key.pem
   amazon.aws.aws_s3:
     bucket: "{{ bucket }}"
-    object: /ca/ca-config.json
-    dest: "{{ role_path }}/files/ca-config.json"
+    object: /ca/kubernetes-key.pem
+    dest: "/var/lib/kubernetes/kubernetes-key.pem"
     mode: get
 
-- name: kube master hostname
-  shell: curl http://169.254.169.254/latest/meta-data/local-hostname
-  register: master_host
+- name: download kubernetes.pem
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/kubernetes.pem
+    dest: "/var/lib/kubernetes/kubernetes.pem"
+    mode: get
 
-- set_fact: 
-    master_host={{ master_host.stdout }}
+- name: download service-account-key.pem
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/service-account-key.pem
+    dest: "/var/lib/kubernetes/service-account-key.pem"
+    mode: get
+
+- name: download service-account.pem
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/service-account.pem
+    dest: "/var/lib/kubernetes/service-account.pem"
+    mode: get
+
+- name: download encryption-config.yaml
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/encryption-config.yaml
+    dest: "/var/lib/kubernetes/encryption-config.yaml"
+    mode: get
+
+- name: download kube-controller-manager.kubeconfig
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/kube-controller-manager.kubeconfig
+    dest: "/var/lib/kubernetes/kube-controller-manager.kubeconfig"
+    mode: get
+
+- name: download kube-scheduler.kubeconfig
+  amazon.aws.aws_s3:
+    bucket: "{{ bucket }}"
+    object: /ca/kube-scheduler.kubeconfig
+    dest: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
+    mode: get
+
+# - name: kube master hostname
+#   shell: curl http://169.254.169.254/latest/meta-data/local-hostname
+#   register: master_host
+
+# - set_fact: 
+#     master_host={{ master_host.stdout }}
 
 - name: kube master ip address
   shell: curl http://169.254.169.254/latest/meta-data/local-ipv4
-  register: master_ip
+  register: internal_ip
 
 - set_fact: 
-    master_ip={{ master_ip.stdout }}
+    INTERNAL_IP: "{{ internal_ip.stdout }}"
 
-- name: kube master loadbalancer
-  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
-  register: master_lb
+- name: setting up kube api service
+  template:
+    src: "{{ role_path }}/templates/kube-apiserver.service.j2"
+    dest: /etc/systemd/system/kube-apiserver.service
+    owner: root
+    group: root
+    mode: '0755'
 
-- set_fact: 
-    master_lb={{ master_lb.stdout }}
+- name: setting up kube controller manager service
+  template:
+    src: "{{ role_path }}/templates/kube-controller-manager.service.j2"
+    dest: /etc/systemd/system/kube-controller-manager.service
+    owner: root
+    group: root
+    mode: '0755'
 
-- name: generate kube master csr
-  copy:
-    dest: "{{ role_path }}/files/kubernetes-csr.json"
-    content: "{{ kube_master | to_json }}"
+- name: setting up kube scheduler
+  template:
+    src: "{{ role_path }}/templates/kube-scheduler.yaml.j2"
+    dest: /etc/kubernetes/config/kube-scheduler.yaml
+    owner: root
+    group: root
+    mode: '0755'
 
-- name: generate certificate for master nodes
-  shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ CERT_HOSTNAME[0] }},{{ CERT_HOSTNAME[1] }},{{ CERT_HOSTNAME[2] }},{{ CERT_HOSTNAME[3] }},{{ master_host }},{{ master_ip }},{{ master_lb }} -profile=kubernetes {{ role_path }}/files/kubernetes-csr.json | cfssljson -bare {{ role_path }}/files/kubernetes"
+- name: setting up kube scheduler service
+  template:
+    src: "{{ role_path }}/templates/kube-scheduler.service.j2"
+    dest: /etc/systemd/system/kube-scheduler.service
+    owner: root
+    group: root
+    mode: '0755'
 
-- name: generate kube controller manager kube config 
-  shell: |
-    kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
-    kubectl config set-credentials system:kube-controller-manager --client-certificate={{ role_path }}/files/kube-controller-manager.pem --client-key={{ role_path }}/files/kube-controller-manager-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
-    kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:kube-controller-manager --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
-    kubectl config use-context default --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
+- name: systemd reload
+  systemd:
+    daemon_reload: yes
 
-- name: generate kube scheduler kube config 
-  shell: | 
-    kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
-    kubectl config set-credentials system:kube-scheduler --client-certificate={{ role_path }}/files/kube-scheduler.pem --client-key={{ role_path }}/files/kube-scheduler-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
-    kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:kube-scheduler --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
-    kubectl config use-context default --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
+- name: enable kube-apiserver service and ensure it is not masked
+  systemd:
+    name: kube-apiserver
+    enabled: yes
+    masked: no
 
-- name: generate admin kube config
-  shell: |
-    kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/admin.kubeconfig
-    kubectl config set-credentials admin --client-certificate={{ role_path }}/files/admin.pem --client-key={{ role_path }}/files/admin-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/admin.kubeconfig
-    kubectl config set-context default --cluster=kubernetes-the-hard-way --user=admin --kubeconfig={{ role_path }}/files/admin.kubeconfig
+- name: make sure kube-apiserver service is running
+  systemd:
+    state: started
+    name: kube-apiserver
+
+- name: enable kube-controller-manager service and ensure it is not masked
+  systemd:
+    name: kube-controller-manager
+    enabled: yes
+    masked: no
+
+- name: make sure kube-controller-manager service is running
+  systemd:
+    state: started
+    name: kube-controller-manager
+
+- name: enable kube-scheduler service and ensure it is not masked
+  systemd:
+    name: kube-scheduler
+    enabled: yes
+    masked: no
+
+- name: make sure kube-scheduler service is running
+  systemd:
+    state: started
+    name: kkube-scheduler
+
+# - name: kube master loadbalancer
+#   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+#   register: master_lb
+
+# - set_fact: 
+#     master_lb={{ master_lb.stdout }}
+
+# - name: generate kube master csr
+#   copy:
+#     dest: "{{ role_path }}/files/kubernetes-csr.json"
+#     content: "{{ kube_master | to_json }}"
+
+# - name: generate certificate for master nodes
+#   shell: "cfssl gencert -ca={{ role_path }}/files/ca.pem -ca-key={{ role_path }}/files/ca-key.pem -config={{ role_path }}/files/ca-config.json -hostname={{ CERT_HOSTNAME[0] }},{{ CERT_HOSTNAME[1] }},{{ CERT_HOSTNAME[2] }},{{ CERT_HOSTNAME[3] }},{{ master_host }},{{ master_ip }},{{ master_lb }} -profile=kubernetes {{ role_path }}/files/kubernetes-csr.json | cfssljson -bare {{ role_path }}/files/kubernetes"
+
+# - name: generate kube controller manager kube config 
+#   shell: |
+#     kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
+#     kubectl config set-credentials system:kube-controller-manager --client-certificate={{ role_path }}/files/kube-controller-manager.pem --client-key={{ role_path }}/files/kube-controller-manager-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
+#     kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:kube-controller-manager --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
+#     kubectl config use-context default --kubeconfig={{ role_path }}/files/kube-controller-manager.kubeconfig
+
+# - name: generate kube scheduler kube config 
+#   shell: | 
+#     kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
+#     kubectl config set-credentials system:kube-scheduler --client-certificate={{ role_path }}/files/kube-scheduler.pem --client-key={{ role_path }}/files/kube-scheduler-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
+#     kubectl config set-context default --cluster=kubernetes-the-hard-way --user=system:kube-scheduler --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
+#     kubectl config use-context default --kubeconfig={{ role_path }}/files/kube-scheduler.kubeconfig
+
+# - name: generate admin kube config
+#   shell: |
+#     kubectl config set-cluster kubernetes-the-hard-way --certificate-authority={{ role_path }}/files/ca.pem --embed-certs=true --server=https://127.0.0.1:6443 --kubeconfig={{ role_path }}/files/admin.kubeconfig
+#     kubectl config set-credentials admin --client-certificate={{ role_path }}/files/admin.pem --client-key={{ role_path }}/files/admin-key.pem --embed-certs=true --kubeconfig={{ role_path }}/files/admin.kubeconfig
+#     kubectl config set-context default --cluster=kubernetes-the-hard-way --user=admin --kubeconfig={{ role_path }}/files/admin.kubeconfig

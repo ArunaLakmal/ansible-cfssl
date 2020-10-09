@@ -1,0 +1,90 @@
+#Master Nodes
+- name: collect master node1 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
+  register: master_node1_ip
+
+- name: collect master node2 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
+  register: master_node2_ip
+
+- name: collect master node1 hostname 
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
+  register: master_node1_host
+
+- name: collect master node2 hostname
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
+  register: master_node2_host
+
+- name: kube master loadbalancer
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: master_lb
+
+#Worker Nodes
+- name: collect worker node1 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
+  register: worker_node1_ip
+
+- name: collect worker node2 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
+  register: worker_node2_ip
+
+- name: collect worker node1 hostname 
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
+  register: worker_node1_host
+
+- name: collect worker node2 hostname
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
+  register: worker_node2_host
+
+- name: kube worker loadbalancer
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeworker-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: worker_lb
+
+#Etcd Nodes
+- name: collect etcd1 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
+  register: etcd1_ip
+
+- name: collect etcd2 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
+  register: etcd2_ip
+
+- name: collect etcd3 instance ip
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[2]'
+  register: etcd3_ip
+
+- name: collect etcd1 hostname
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
+  register: etcd1_host
+
+- name: collect etcd2 hostname
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
+  register: etcd2_host
+
+- name: collect etcd3 hostname
+  shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[2]'
+  register: etcd3_host
+
+- name: kube worker loadbalancer
+  shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeetcd-int-lb | jq -r '.LoadBalancers[].DNSName'
+  register: etcd_lb
+
+#Set Facts 
+- set_fact: 
+    master1_ip: "{{ master_node1_ip.stdout }}"
+    master2_ip: "{{ master_node2_ip.stdout }}"
+    master1_host: "{{ master_node1_host.stdout }}"
+    master2_host: "{{ master_node2_host.stdout }}"
+    master_lb: "{{ master_lb.stdout }}"
+    worker1_ip: "{{ worker_node1_ip.stdout }}"
+    worker2_ip: "{{ worker_node2_ip.stdout }}"
+    worker1_host: "{{ worker_node1_host.stdout }}"
+    worker2_host: "{{ worker_node2_host.stdout }}"
+    worker_lb: "{{ worker_lb.stdout }}"
+    etcd1_ip: "{{ etcd1_ip.stdout }}"
+    etcd2_ip: "{{ etcd2_ip.stdout }}"
+    etcd3_ip: "{{ etcd3_ip.stdout }}"
+    etcd1_host: "{{ etcd1_host.stdout }}"
+    etcd2_host: "{{ etcd2_host.stdout }}"
+    etcd3_host: "{{ etcd3_host.stdout }}"
+    etcd_lb: "{{ etcd_lb.stdout }}"
