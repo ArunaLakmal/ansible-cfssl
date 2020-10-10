@@ -142,7 +142,7 @@
 - name: make sure kube-scheduler service is running
   systemd:
     state: started
-    name: kkube-scheduler
+    name: kube-scheduler
 
 # - name: kube master loadbalancer
 #   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
