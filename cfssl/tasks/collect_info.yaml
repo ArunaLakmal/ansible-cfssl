@@ -2,72 +2,123 @@
 - name: collect master node1 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
   register: master_node1_ip
+  until: master_node1_ip.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect master node2 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
   register: master_node2_ip
+  until: master_node2_ip.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect master node1 hostname 
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
   register: master_node1_host
+  until: master_node1_host.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect master node2 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_master" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
   register: master_node2_host
+  until: master_node2_host.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: kube master loadbalancer
   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubemaster-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: master_lb
+  until: master_lb.stdout != "null"
+  retries: 20
+  delay: 15
 
 #Worker Nodes
 - name: collect worker node1 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
   register: worker_node1_ip
+  until: worker_node1_ip.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect worker node2 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
   register: worker_node2_ip
+  until: worker_node2_ip.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect worker node1 hostname 
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
   register: worker_node1_host
+  until: worker_node1_host.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: collect worker node2 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_worker" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
   register: worker_node2_host
+  until: worker_node2_host.stdout != "null"
+  retries: 20
+  delay: 15
 
 - name: kube worker loadbalancer
   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeworker-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: worker_lb
+  until: worker_lb.stdout != "null"
+  retries: 20
+  delay: 15
 
 #Etcd Nodes
 - name: collect etcd1 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
   register: etcd1_ip
+  until: etcd1_ip.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: collect etcd2 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
   register: etcd2_ip
+  until: etcd2_ip.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: collect etcd3 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[2]'
   register: etcd3_ip
+  until: etcd3_ip.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: collect etcd1 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
   register: etcd1_host
+  until: etcd1_host.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: collect etcd2 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
   register: etcd2_host
+  until: etcd2_host.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: collect etcd3 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[2]'
   register: etcd3_host
+  until: etcd3_host.stdout | length > 0
+  retries: 20
+  delay: 15
 
 - name: kube worker loadbalancer
   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeetcd-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: etcd_lb
+  until: etcd_lb.stdout | length > 0
+  retries: 20
+  delay: 15
 
 #Set Facts 
 - set_fact: 
