@@ -74,49 +74,49 @@
 - name: collect etcd1 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[0]'
   register: etcd1_ip
-  until: etcd1_ip.stdout | length > 0
+  until: etcd1_ip.stdout != "null"
   retries: 20
   delay: 15
 
 - name: collect etcd2 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[1]'
   register: etcd2_ip
-  until: etcd2_ip.stdout | length > 0
+  until: etcd2_ip.stdout != "null"
   retries: 20
   delay: 15
 
 - name: collect etcd3 instance ip
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateIpAddress" --no-paginate | jq -r '.[2]'
   register: etcd3_ip
-  until: etcd3_ip.stdout | length > 0
+  until: etcd3_ip.stdout != "null"
   retries: 20
   delay: 15
 
 - name: collect etcd1 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[0]'
   register: etcd1_host
-  until: etcd1_host.stdout | length > 0
+  until: etcd1_host.stdout != "null"
   retries: 20
   delay: 15
 
 - name: collect etcd2 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[1]'
   register: etcd2_host
-  until: etcd2_host.stdout | length > 0
+  until: etcd2_host.stdout != "null"
   retries: 20
   delay: 15
 
 - name: collect etcd3 hostname
   shell: aws ec2 describe-instances --region us-east-1 --filter "Name=tag:Name,Values=kube_etcd" --query "Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName" --no-paginate | jq -r '.[2]'
   register: etcd3_host
-  until: etcd3_host.stdout | length > 0
+  until: etcd3_host.stdout != "null"
   retries: 20
   delay: 15
 
 - name: kube worker loadbalancer
   shell: aws elbv2 describe-load-balancers --region us-east-1 --name kubeetcd-int-lb | jq -r '.LoadBalancers[].DNSName'
   register: etcd_lb
-  until: etcd_lb.stdout | length > 0
+  until: etcd_lb.stdout != "null"
   retries: 20
   delay: 15
 
