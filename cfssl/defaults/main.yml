@@ -1,2 +1,4 @@
 ---
 # defaults file for cfssl
+retries: 20
+delay: 15
